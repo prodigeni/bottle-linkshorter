@@ -78,21 +78,21 @@ def apiAdd(url, auth = ""):
 @error(404)
 def error404(error):
     if isApiCall():
-        return [{"code":"404"}, {"message":"Not found"}]
+        return {"code":"404", "message":"Not Found"}
     else:
         return template('error', message="uh, oh, it's a four-oh-four!")
 
 @error(403)
 def error403(error):
     if isApiCall():
-        return [{"code":"403"}, {"message":"Forbidden"}]
+        return {"code":"403", "message":"Forbidden"}
     else:
         return template('error', message="seems like you are doing something you are not allowed to do?")
 
 @error(500)
 def error500(error):
     if isApiCall():
-        return [{"code":"500"}, {"message":"Internal Server Error"}]
+        return {"code":"500", "message":"Internal Server Error"}
     else:
         return template('error', message="something went terrible wrong!")
 
