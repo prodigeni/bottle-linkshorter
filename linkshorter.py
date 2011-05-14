@@ -68,7 +68,7 @@ def addForm():
 def addPost():
     auth = request.forms.get('auth')
     link = request.forms.get('link')
-    return addLinkToDb(auth, link)
+    return addLinkToDb(link, auth)
 
 @route('/api/add/:url#.+#')
 @route('/api/add/:auth#[a-z0-9]+#/:url#.+#')
@@ -87,7 +87,7 @@ def error403(error):
 def error500(error):
     return template('error', message="something went terrible wrong!")
 
-def addLinkToDb(auth, link):
+def addLinkToDb(link, auth = ""):
     h = hashlib.new('sha1')
     h.update(auth)
     auth = h.hexdigest()
