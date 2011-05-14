@@ -107,7 +107,7 @@ def apiGet(url = "", lid = ""):
         mysqlCur.execute("SELECT target FROM links WHERE ID=%i LIMIT 1;" % base36decode(lid))
         if mysqlCur.rowcount:
             url = mysqlCur.fetchone()
-            return {"status":"200", "message":"Success", "shortUrl":config.get("general", "link_root_url") + lid, "target":url}
+            return {"status":"200", "message":"Success", "shortUrl":config.get("general", "link_root_url") + lid, "target":url[0]}
         else:
             raise HTTPError(code=404)
     else:
