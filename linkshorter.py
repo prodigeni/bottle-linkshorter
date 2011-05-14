@@ -32,7 +32,7 @@ import hashlib
 import MySQLdb
 import bottle
 from base36 import *
-from bottle import route, redirect, template, get, post, request
+from bottle import route, redirect, template, get, post, request, HTTPError
 
 # for debiggung
 bottle.app().catchall = 0
@@ -55,7 +55,7 @@ def gotoLink(lid):
         url = mysqlCur.fetchone()
         redirect(url[0])
     else:
-        return "404"
+        raise HTTPError(code=404)
 
 @get('/add/')
 def addForm():
@@ -82,8 +82,20 @@ def addPost():
             base32url = base36encode(base32url[0])
             return config.get("general", "link_root_url") + base32url
         else:
-            return "oops!"
+            raise HTTPError(code=500)
     else:
-        return "403"
+        raise HTTPError(code=403)
+
+@error(404)
+def error404(error):
+    print "uh, oh, it's a four-oh-four!"
+
+@error(403)
+def error403(error):
+    print "seems like you are doing something you are not allowed to do?"
+
+@error(500)
+def error500(error):
+    print "something went terrible wrong!"
 
 application = bottle.default_app()
