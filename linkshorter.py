@@ -68,7 +68,26 @@ def addForm():
 def addPost():
     auth = request.forms.get('auth')
     link = request.forms.get('link')
-    
+    addLinkToDb(auth, link)
+
+@route('/api/add/:url#.+#')
+@route('/api/add/:auth#[a-z0-9]+#/:url#.+#')
+def apiAdd(url, auth = ""):
+    return url.replace(':/', '://')
+
+@error(404)
+def error404(error):
+    return template('error', message="uh, oh, it's a four-oh-four!")
+
+@error(403)
+def error403(error):
+    return template('error', message="seems like you are doing something you are not allowed to do?")
+
+@error(500)
+def error500(error):
+    return template('error', message="something went terrible wrong!")
+
+def addLinkToDb(auth, link):
     h = hashlib.new('sha1')
     h.update(auth)
     auth = h.hexdigest()
@@ -88,22 +107,5 @@ def addPost():
             raise HTTPError(code=500)
     else:
         raise HTTPError(code=403)
-
-@route('/api/add/:url#.+#')
-@route('/api/add/:auth#[a-z0-9]+#/:url#.+#')
-def apiAdd(url, auth = ""):
-    return url.replace(':/', '://')
-
-@error(404)
-def error404(error):
-    return template('error', message="uh, oh, it's a four-oh-four!")
-
-@error(403)
-def error403(error):
-    return template('error', message="seems like you are doing something you are not allowed to do?")
-
-@error(500)
-def error500(error):
-    return template('error', message="something went terrible wrong!")
 
 application = bottle.default_app()
