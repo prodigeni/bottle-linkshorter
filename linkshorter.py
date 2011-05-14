@@ -68,7 +68,7 @@ def addForm():
 def addPost():
     auth = request.forms.get('auth')
     link = request.forms.get('link')
-    addLinkToDb(auth, link)
+    return addLinkToDb(auth, link)
 
 @route('/api/add/:url#.+#')
 @route('/api/add/:auth#[a-z0-9]+#/:url#.+#')
