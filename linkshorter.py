@@ -73,7 +73,7 @@ def addPost():
     h.update(auth)
     auth = h.hexdigest()
     
-    if auth in config.get("general", "auth_hashes").rsplit(','):
+    if (not config.get("general", "auth_hashes")) or (auth in config.get("general", "auth_hashes").rsplit(',')):
         mysqlCur.execute("SELECT count(*) FROM links WHERE target='%s';" % link)
         count = mysqlCur.fetchone()
         count = count[0]
