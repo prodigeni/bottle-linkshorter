@@ -92,7 +92,7 @@ def apiAdd(url, auth = ""):
 
 @route('/api/get/:url#.+#')
 @route('/api/get/:lid#[a-z0-9]+#')
-@route('/api/get/' + config.get("general", "link_root_url").replace('://', ':/') + ':lid#[a-z0-9]+#')
+@route('/api/get/' + config.get("general", "link_root_url").replace('://', '\:/') + ':lid#[a-z0-9]+#')
 def apiGet(url = "", lid = ""):
     ''' this will get the link-id AND the target. it'll search for target
         and the link-id '''
