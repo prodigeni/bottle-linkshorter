@@ -90,6 +90,29 @@ def apiAdd(url, auth = ""):
         thats some kind of apache "bug" '''
     return addLinkToDb(url.replace(':/', '://'), auth)
 
+@route('/api/get/:url#.+#')
+@route('/api/get/:lid#[a-z0-9]+#')
+def apiGet(url = "", lid = ""):
+    ''' this will get the link-id AND the target. it'll search for target
+        and the link-id '''
+    if url:
+        mysqlCur.execute("SELECT ID FROM links WHERE target=%i LIMIT 1;" % url)
+        if mysqlCur.rowcount:
+            id = mysqlCur.fetchone()
+            id = base36encode(id[0])
+            return {"status":"200", "message":"Success", "shortUrl":config.get("general", "link_root_url") + id, "target":url}
+        else:
+            raise HTTPError(code=404)
+    elif lid:
+        mysqlCur.execute("SELECT target FROM links WHERE ID=%i LIMIT 1;" % base36decode(lid))
+        if mysqlCur.rowcount:
+            url = mysqlCur.fetchone()
+            return {"status":"200", "message":"Success", "shortUrl":config.get("general", "link_root_url") + lid, "target":url}
+        else:
+            raise HTTPError(code=404)
+    else:
+        raise HTTPError(code=404)
+
 ###############################################################################
 # error handlers ##############################################################
 ###############################################################################
