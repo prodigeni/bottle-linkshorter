@@ -46,7 +46,10 @@ mysqlCur = mysqlConn.cursor()
 
 @route('/')
 def index():    
-    redirect(config.get("general", "index_redirect"))
+    if config.get("general", "index_redirect"):
+        redirect(config.get("general", "index_redirect"))
+    else:
+        return template("index")
     
 @route('/:lid#[a-z0-9]+#')
 def gotoLink(lid):

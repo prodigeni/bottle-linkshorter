@@ -12,7 +12,7 @@ mysql_password: yourpass
 mysql_database: yourdb
 
 [general]
-;redirect-target if someone access /
+;redirect-target if someone access /, if empty, the index.html-template will be shown
 index_redirect: http://google.com/
 
 ;root of the short-urls
