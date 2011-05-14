@@ -96,7 +96,8 @@ def apiGet(url = "", lid = ""):
     ''' this will get the link-id AND the target. it'll search for target
         and the link-id '''
     if url:
-        mysqlCur.execute("SELECT ID FROM links WHERE target='%s' LIMIT 1;" % url.replace(':/', '://'))
+        url = url.replace(':/', '://')
+        mysqlCur.execute("SELECT ID FROM links WHERE target='%s' LIMIT 1;" % url)
         if mysqlCur.rowcount:
             id = mysqlCur.fetchone()
             id = base36encode(id[0])
