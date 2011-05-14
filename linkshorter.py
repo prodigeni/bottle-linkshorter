@@ -70,7 +70,7 @@ def addPost():
     h.update(auth)
     auth = h.hexdigest()
     
-    if auth in authHashes:
+    if auth in config.get("general", "auth_hashes").rsplit(','):
         mysqlCur.execute("SELECT count(*) FROM links WHERE target='%s';" % link)
         count = mysqlCur.fetchone()
         count = count[0]
@@ -80,7 +80,7 @@ def addPost():
         if mysqlCur.rowcount:
             base32url = mysqlCur.fetchone()
             base32url = base36encode(base32url[0])
-            return ROOT_URL + base32url
+            return config.get("general", "link_root_url") + base32url
         else:
             return "oops!"
     else:
