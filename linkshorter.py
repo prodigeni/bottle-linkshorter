@@ -68,12 +68,12 @@ def addForm():
 def addPost():
     auth = request.forms.get('auth')
     link = request.forms.get('link')
-    return addLinkToDb(link, auth, True)
+    return addLinkToDb(link, auth)
 
 @route('/api/add/:url#.+#')
 @route('/api/add/:auth#[a-z0-9]+#/:url#.+#')
 def apiAdd(url, auth = ""):
-    return addLinkToDb(url.replace(':/', '://'), auth)
+    return addLinkToDb(url.replace(':/', '://'), auth, True)
 
 @error(404)
 def error404(error):
