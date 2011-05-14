@@ -30,6 +30,7 @@ if path not in sys.path:
 import ConfigParser
 import hashlib
 import MySQLdb
+import json
 import bottle
 from base36 import *
 from bottle import route, redirect, template, get, post, request, HTTPError, error
@@ -77,7 +78,10 @@ def apiAdd(url, auth = ""):
 
 @error(404)
 def error404(error):
-    return template('error', message="uh, oh, it's a four-oh-four!")
+    if isApiCall():
+        return json.dumps([{"code":"404"}, {"message":"Not found"}])
+    else:
+        return template('error', message="uh, oh, it's a four-oh-four!")
 
 @error(403)
 def error403(error):
@@ -108,5 +112,11 @@ def addLinkToDb(link, auth = "", api = False):
             raise HTTPError(code=500)
     else:
         raise HTTPError(code=403)
+
+def isApiCall():
+    if bottle.request.fullpath.startswith("/api/"):
+        return True
+    else:
+        return False
 
 application = bottle.default_app()
