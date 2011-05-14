@@ -78,21 +78,21 @@ def apiAdd(url, auth = ""):
 @error(404)
 def error404(error):
     if isApiCall():
-        return {"code":"404", "message":"Not Found"}
+        return {"status":"404", "message":"Not Found"}
     else:
         return template('error', message="uh, oh, it's a four-oh-four!")
 
 @error(403)
 def error403(error):
     if isApiCall():
-        return {"code":"403", "message":"Forbidden"}
+        return {"status":"403", "message":"Forbidden"}
     else:
         return template('error', message="seems like you are doing something you are not allowed to do?")
 
 @error(500)
 def error500(error):
     if isApiCall():
-        return {"code":"500", "message":"Internal Server Error"}
+        return {"status":"500", "message":"Internal Server Error"}
     else:
         return template('error', message="something went terrible wrong!")
 
@@ -112,7 +112,10 @@ def addLinkToDb(link, auth = ""):
         if mysqlCur.rowcount:
             base32url = mysqlCur.fetchone()
             base32url = base36encode(base32url[0])
-            return config.get("general", "link_root_url") + base32url
+            if isApiCall():
+                return {"status":"200", "message":"Success", "shortUrl":config.get("general", "link_root_url") + base32url}
+            else:
+                return config.get("general", "link_root_url") + base32url
         else:
             raise HTTPError(code=500)
     else:
