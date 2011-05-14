@@ -98,7 +98,7 @@ def apiGet(url = "", lid = ""):
         and the link-id '''
     if url:
         url = url.replace(':/', '://')
-        mysqlCur.execute("SELECT ID FROM links WHERE target='%s' LIMIT 1;" % url)
+        mysqlCur.execute("SELECT ID FROM links WHERE target='%s' LIMIT 1;" % mysqlConn.escape_string(url))
         if mysqlCur.rowcount:
             id = mysqlCur.fetchone()
             id = base36encode(id[0])
@@ -159,13 +159,13 @@ def addLinkToDb(link, auth = ""):
         auth = h.hexdigest()
     
     if (not config.get("general", "auth_hashes")) or (auth in config.get("general", "auth_hashes").rsplit(',')):
-        mysqlCur.execute("SELECT count(*) FROM links WHERE target='%s';" % link)
+        mysqlCur.execute("SELECT count(*) FROM links WHERE target='%s';" % mysqlConn.escape_string(link))
         count = mysqlCur.fetchone()
         count = count[0]
         if not count:
-            mysqlCur.execute("INSERT INTO links (target) VALUES ('%s');" % link)
+            mysqlCur.execute("INSERT INTO links (target) VALUES ('%s');" % mysqlConn.escape_string(link))
 
-        mysqlCur.execute("SELECT ID FROM links WHERE target='%s';" % link)
+        mysqlCur.execute("SELECT ID FROM links WHERE target='%s';" % mysqlConn.escape_string(link))
         if mysqlCur.rowcount:
             base32url = mysqlCur.fetchone()
             base32url = base36encode(base32url[0])
