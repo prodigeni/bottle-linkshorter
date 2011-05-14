@@ -41,11 +41,17 @@ bottle.app().catchall = 0
 config = ConfigParser.ConfigParser()
 config.read('config.cfg')
 
+# say hello the the database
 mysqlConn = MySQLdb.connect(host=config.get("database", "mysql_host"), user=config.get("database", "mysql_user"), passwd=config.get("database", "mysql_password"), db=config.get("database", "mysql_database"))
 mysqlCur = mysqlConn.cursor()
 
+###############################################################################
+# website-stuff ###############################################################
+###############################################################################
+
 @route('/')
-def index():    
+def index():
+    ''' this will redirect to the redirect-target or output the index-page '''    
     if config.get("general", "index_redirect"):
         redirect(config.get("general", "index_redirect"))
     else:
@@ -53,6 +59,7 @@ def index():
     
 @route('/:lid#[a-z0-9]+#')
 def gotoLink(lid):
+    ''' get the target-url and redirect '''
     mysqlCur.execute("SELECT target FROM links WHERE ID=%i LIMIT 1;" % base36decode(lid))
     if mysqlCur.rowcount:
         url = mysqlCur.fetchone()
@@ -62,21 +69,34 @@ def gotoLink(lid):
 
 @get('/add/')
 def addForm():
+    ''' this will just show the add-formular '''
     return template('add')
 
 @post('/add/')
 def addPost():
+    ''' this will get the get-variables and then call the addLinkToDb-method '''
     auth = request.forms.get('auth')
     link = request.forms.get('link')
     return addLinkToDb(link, auth)
 
+###############################################################################
+# api-stuff ###################################################################
+###############################################################################
+
 @route('/api/add/:url#.+#')
 @route('/api/add/:auth#[a-z0-9]+#/:url#.+#')
 def apiAdd(url, auth = ""):
+    ''' addLinkToDb for the get-api. Note that we are replacing :/ with :// here,
+        thats some kind of apache "bug" '''
     return addLinkToDb(url.replace(':/', '://'), auth)
+
+###############################################################################
+# error handlers ##############################################################
+###############################################################################
 
 @error(404)
 def error404(error):
+    ''' handler for 404-errors '''
     if isApiCall():
         return {"status":"404", "message":"Not Found"}
     else:
@@ -84,6 +104,7 @@ def error404(error):
 
 @error(403)
 def error403(error):
+    ''' handler for 403-errors '''
     if isApiCall():
         return {"status":"403", "message":"Forbidden"}
     else:
@@ -91,12 +112,22 @@ def error403(error):
 
 @error(500)
 def error500(error):
+    ''' handler for 500-errors '''
     if isApiCall():
         return {"status":"500", "message":"Internal Server Error"}
     else:
         return template('error', message="something went terrible wrong!")
 
+###############################################################################
+# additional functions ########################################################
+###############################################################################
+
 def addLinkToDb(link, auth = ""):
+    ''' this will add the url to the database, but only if it's not in there
+        if it's in there, just output the short link. '''
+
+    # we only need a sha1-generator, if it's NOT an api-call, api-calls will already
+    # have the hash in there
     if not isApiCall():
         h = hashlib.new('sha1')
         h.update(auth)
@@ -108,6 +139,7 @@ def addLinkToDb(link, auth = ""):
         count = count[0]
         if not count:
             mysqlCur.execute("INSERT INTO links (target) VALUES ('%s');" % link)
+
         mysqlCur.execute("SELECT ID FROM links WHERE target='%s';" % link)
         if mysqlCur.rowcount:
             base32url = mysqlCur.fetchone()
@@ -122,6 +154,7 @@ def addLinkToDb(link, auth = ""):
         raise HTTPError(code=403)
 
 def isApiCall():
+    ''' just a little helper which checks if it's an api call or not '''
     if bottle.request.fullpath.startswith("/api/"):
         return True
     else:
