@@ -73,7 +73,7 @@ def addPost():
 @route('/api/add/:url#.+#')
 @route('/api/add/:auth#[a-z0-9]+#/:url#.+#')
 def apiAdd(url, auth = ""):
-    return addLinkToDb(url.replace(':/', '://'), auth, True)
+    return addLinkToDb(url.replace(':/', '://'), auth)
 
 @error(404)
 def error404(error):
@@ -96,8 +96,8 @@ def error500(error):
     else:
         return template('error', message="something went terrible wrong!")
 
-def addLinkToDb(link, auth = "", api = False):
-    if not api:
+def addLinkToDb(link, auth = ""):
+    if not isApiCall():
         h = hashlib.new('sha1')
         h.update(auth)
         auth = h.hexdigest()
