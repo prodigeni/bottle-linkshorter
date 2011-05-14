@@ -32,7 +32,7 @@ import hashlib
 import MySQLdb
 import bottle
 from base36 import *
-from bottle import route, redirect, template, get, post, request, HTTPError
+from bottle import route, redirect, template, get, post, request, HTTPError, error
 
 # for debiggung
 bottle.app().catchall = 0
