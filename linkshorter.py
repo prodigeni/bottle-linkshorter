@@ -92,7 +92,7 @@ def addPost():
 @route('/api/add/:url#.+#')
 @route('/api/add/:auth#[a-z0-9]+#/:url#.+#')
 def apiAdd(url, auth = ""):
-    return url
+    return url.replace(':/', '://')
 
 @error(404)
 def error404(error):
