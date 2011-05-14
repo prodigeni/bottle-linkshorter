@@ -84,11 +84,17 @@ def error404(error):
 
 @error(403)
 def error403(error):
-    return template('error', message="seems like you are doing something you are not allowed to do?")
+    if isApiCall():
+        return [{"code":"403"}, {"message":"Forbidden"}]
+    else:
+        return template('error', message="seems like you are doing something you are not allowed to do?")
 
 @error(500)
 def error500(error):
-    return template('error', message="something went terrible wrong!")
+    if isApiCall():
+        return [{"code":"500"}, {"message":"Internal Server Error"}]
+    else:
+        return template('error', message="something went terrible wrong!")
 
 def addLinkToDb(link, auth = "", api = False):
     if not api:
