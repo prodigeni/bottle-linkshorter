@@ -30,7 +30,6 @@ if path not in sys.path:
 import ConfigParser
 import hashlib
 import MySQLdb
-import json
 import bottle
 from base36 import *
 from bottle import route, redirect, template, get, post, request, HTTPError, error
@@ -79,7 +78,7 @@ def apiAdd(url, auth = ""):
 @error(404)
 def error404(error):
     if isApiCall():
-        return json.dumps([{"code":"404"}, {"message":"Not found"}])
+        return [{"code":"404"}, {"message":"Not found"}]
     else:
         return template('error', message="uh, oh, it's a four-oh-four!")
 
