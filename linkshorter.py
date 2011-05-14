@@ -91,7 +91,7 @@ def addPost():
 
 @route('/api/add/:auth#[a-z0-9]+#/:url#.+#')
 @route('/api/add/:url#.+#')
-def apiAdd(auth = "", url):
+def apiAdd(url, auth = ""):
     print url
 
 @error(404)
