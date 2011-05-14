@@ -46,7 +46,7 @@ mysqlCur = mysqlConn.cursor()
 
 @route('/')
 def index():    
-    redirect("http://w.dsx.cc/")
+    redirect(config.get("general", "index_redirect"))
     
 @route('/:lid#[a-z0-9]+#')
 def gotoLink(lid):
