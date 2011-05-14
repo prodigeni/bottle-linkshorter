@@ -89,8 +89,8 @@ def addPost():
     else:
         raise HTTPError(code=403)
 
-@route('/api/add/:auth#[a-z0-9]+#/:url#.+#')
 @route('/api/add/:url#.+#')
+@route('/api/add/:auth#[a-z0-9]+#/:url#.+#')
 def apiAdd(url, auth = ""):
     return url
 
