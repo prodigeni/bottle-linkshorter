@@ -68,7 +68,7 @@ def addForm():
 def addPost():
     auth = request.forms.get('auth')
     link = request.forms.get('link')
-    return addLinkToDb(link, auth)
+    return addLinkToDb(link, auth, True)
 
 @route('/api/add/:url#.+#')
 @route('/api/add/:auth#[a-z0-9]+#/:url#.+#')
@@ -87,10 +87,11 @@ def error403(error):
 def error500(error):
     return template('error', message="something went terrible wrong!")
 
-def addLinkToDb(link, auth = ""):
-    h = hashlib.new('sha1')
-    h.update(auth)
-    auth = h.hexdigest()
+def addLinkToDb(link, auth = "", api = False):
+    if not api:
+        h = hashlib.new('sha1')
+        h.update(auth)
+        auth = h.hexdigest()
     
     if (not config.get("general", "auth_hashes")) or (auth in config.get("general", "auth_hashes").rsplit(',')):
         mysqlCur.execute("SELECT count(*) FROM links WHERE target='%s';" % link)
