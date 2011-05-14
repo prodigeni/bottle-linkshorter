@@ -1,0 +1,14 @@
+<!DOCTYPE HTML>
+<html lang="de-DE">
+<head>
+	<meta charset="UTF-8">
+	<title>dsx.cc-LinkShorter</title>
+</head>
+<body>
+	<form action="/add/" method="post">
+	    <input type="text" value="auth" id="auth" name="auth" size="40" /><br />
+	    <input type="text" value="link" id="link" name="link" size="40" /><br />
+	    <input type="submit" value="submit" id="submit" name="submit" size="40" />
+	</form>
+</body>
+</html>
