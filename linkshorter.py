@@ -89,6 +89,11 @@ def addPost():
     else:
         raise HTTPError(code=403)
 
+@route('/api/add/:auth#[a-z0-9]+#/:url#.+#')
+@route('/api/add/:url#.+#')
+def apiAdd(auth = "", url):
+    print url
+
 @error(404)
 def error404(error):
     return template('error', message="uh, oh, it's a four-oh-four!")
