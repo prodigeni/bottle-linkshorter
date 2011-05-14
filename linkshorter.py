@@ -115,7 +115,7 @@ def addLinkToDb(link, auth = ""):
             if isApiCall():
                 return {"status":"200", "message":"Success", "shortUrl":config.get("general", "link_root_url") + base32url}
             else:
-                return config.get("general", "link_root_url") + base32url
+                return template("success", link=config.get("general", "link_root_url") + base32url)
         else:
             raise HTTPError(code=500)
     else:
