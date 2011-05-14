@@ -17,15 +17,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
-MYSQL_HOST = "localhost"
-MYSQL_USER = "internal"
-MYSQL_PASSWORD = "HXHXLsafLCxAyefT"
-MYSQL_DATABASE = "internal_linkshorter"
-
-ROOT_URL = "http://dsx.cc/"
-
-AUTH_HASHES = ['your sha1 hashes of the passwords'] 
-
 # import os and sys to change the working-dir and add the app-folder to sys
 # path, so we can use local libs...
 import os
@@ -36,8 +27,9 @@ os.chdir(path)
 if path not in sys.path:
     sys.path.append(path)
 
-import MySQLdb
+import ConfigParser
 import hashlib
+import MySQLdb
 import bottle
 from base36 import *
 from bottle import route, redirect, template, get, post, request
@@ -45,11 +37,15 @@ from bottle import route, redirect, template, get, post, request
 # for debiggung
 bottle.app().catchall = 0
 
-mysqlConn = MySQLdb.connect(host=MYSQL_HOST, user=MYSQL_USER, passwd=MYSQL_PASSWORD, db=MYSQL_DATABASE)
+# load the config-file
+config = ConfigParser.ConfigParser()
+config.read('config.cfg')
+
+mysqlConn = MySQLdb.connect(host=config.get("database", "mysql_host"), user=config.get("database", "mysql_user"), passwd=config.get("database", "mysql_password"), db=config.get("database", "mysql_database"))
 mysqlCur = mysqlConn.cursor()
 
 @route('/')
-def index():
+def index():    
     redirect("http://w.dsx.cc/")
     
 @route('/:lid#[a-z0-9]+#')
