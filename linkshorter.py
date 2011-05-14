@@ -59,7 +59,7 @@ def gotoLink(lid):
 
 @get('/add/')
 def addForm():
-    return template('add_template')
+    return template('add')
 
 @post('/add/')
 def addPost():
