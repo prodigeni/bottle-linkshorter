@@ -88,14 +88,14 @@ def addPost():
 
 @error(404)
 def error404(error):
-    print "uh, oh, it's a four-oh-four!"
+    return "uh, oh, it's a four-oh-four!"
 
 @error(403)
 def error403(error):
-    print "seems like you are doing something you are not allowed to do?"
+    return "seems like you are doing something you are not allowed to do?"
 
 @error(500)
 def error500(error):
-    print "something went terrible wrong!"
+    return "something went terrible wrong!"
 
 application = bottle.default_app()
