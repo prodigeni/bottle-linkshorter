@@ -86,8 +86,4 @@ def addPost():
     else:
         return "403"
 
-@route('/add/:key#[a-z0-9]+#/:url#.*#')
-def add(key, url):
-    return url
-
 application = bottle.default_app()
