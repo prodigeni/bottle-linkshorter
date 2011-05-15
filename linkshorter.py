@@ -52,7 +52,8 @@ mysqlCur = mysqlConn.cursor()
 @route('/')
 def index():
     ''' this will redirect to the redirect-target or output the index-page '''    
-    if config.get("general", "index_redirect"):
+    if config.has_option("general", "index_redirect") and \
+       config.get("general", "index_redirect"):
         redirect(config.get("general", "index_redirect"))
     else:
         return template("index")
@@ -158,7 +159,9 @@ def addLinkToDb(link, auth = ""):
         h.update(auth)
         auth = h.hexdigest()
     
-    if (not config.get("general", "auth_hashes")) or (auth in config.get("general", "auth_hashes").rsplit(',')):
+    if (not config.has_option("general", "auth_hashes") or \
+        not config.get("general", "auth_hashes")) or \
+        (auth in config.get("general", "auth_hashes").rsplit(',')):
         mysqlCur.execute("SELECT count(*) FROM links WHERE target='%s';" % mysqlConn.escape_string(link))
         count = mysqlCur.fetchone()
         count = count[0]
