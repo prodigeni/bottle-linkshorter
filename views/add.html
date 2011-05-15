@@ -1,5 +1,9 @@
 <form action="/add/" method="post">
+    % if auth_enabled():
     <input type="password" value="auth" id="auth" name="auth" />
+    % else:
+    <input type="hidden" value="auth_disabled" id="auth" name="auth" />
+    % end
     <input type="text" value="link" id="link" name="link" />
     <input type="submit" value="submit" id="submit" name="submit" />
 </form>

@@ -71,7 +71,7 @@ def gotoLink(lid):
 @get('/add/')
 def addForm():
     ''' this will just show the add-formular '''
-    return template('add')
+    return template('add', auth_enabled=auth_enabled)
 
 @post('/add/')
 def addPost():
@@ -159,9 +159,7 @@ def addLinkToDb(link, auth = ""):
         h.update(auth)
         auth = h.hexdigest()
     
-    if (not config.has_option("general", "auth_hashes") or \
-        not config.get("general", "auth_hashes")) or \
-        (auth in config.get("general", "auth_hashes").rsplit(',')):
+    if not auth_enabled() or (auth in config.get("general", "auth_hashes").rsplit(',')):
         mysqlCur.execute("SELECT count(*) FROM links WHERE target='%s';" % mysqlConn.escape_string(link))
         count = mysqlCur.fetchone()
         count = count[0]
@@ -188,4 +186,11 @@ def isApiCall():
     else:
         return False
 
+def auth_enabled():
+    ''' helper to check if auth is enabled '''
+    if config.has_option("general", "auth_hashes") and \
+       config.get("general", "auth_hashes"):
+        return True
+    else:
+        return False
 application = bottle.default_app()
