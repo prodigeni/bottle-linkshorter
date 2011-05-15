@@ -159,6 +159,10 @@ def addLinkToDb(link, auth = ""):
         h.update(auth)
         auth = h.hexdigest()
     
+    # Get sure there's a protocol
+    if not ":/" in link:
+        link = "http://"+link
+    
     if not auth_enabled() or (auth in config.get("general", "auth_hashes").rsplit(',')):
         mysqlCur.execute("SELECT count(*) FROM links WHERE target='%s';" % mysqlConn.escape_string(link))
         count = mysqlCur.fetchone()
