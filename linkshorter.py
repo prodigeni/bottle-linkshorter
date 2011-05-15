@@ -71,7 +71,7 @@ def gotoLink(lid):
 @get('/add/')
 def addForm():
     ''' this will just show the add-formular '''
-    return template('add', auth_enabled=auth_enabled)
+    return template('add', authEnabled=authEnabled)
 
 @post('/add/')
 def addPost():
@@ -163,7 +163,7 @@ def addLinkToDb(link, auth = ""):
     if not ":/" in link:
         link = "http://"+link
     
-    if not auth_enabled() or (auth in config.get("general", "auth_hashes").rsplit(',')):
+    if not authEnabled() or (auth in config.get("general", "auth_hashes").rsplit(',')):
         mysqlCur.execute("SELECT count(*) FROM links WHERE target='%s';" % mysqlConn.escape_string(link))
         count = mysqlCur.fetchone()
         count = count[0]
@@ -190,7 +190,7 @@ def isApiCall():
     else:
         return False
 
-def auth_enabled():
+def authEnabled():
     ''' helper to check if auth is enabled '''
     if config.has_option("general", "auth_hashes") and \
        config.get("general", "auth_hashes"):
