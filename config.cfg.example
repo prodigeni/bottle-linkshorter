@@ -11,6 +11,12 @@ mysql_password: yourpass
 ;the mysql-database
 mysql_database: yourdb
 
+;the connection timeout in seconds
+mysql_connection_timeout: 604800
+
+; times to retry to connect
+mysql_connection_retries: 3
+
 [general]
 ;redirect-target if someone access /, if empty, the index.html-template will be shown
 index_redirect: http://google.com/
