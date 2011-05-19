@@ -42,8 +42,8 @@ config = ConfigParser.ConfigParser()
 config.read('config.cfg')
 
 # say hello the the database
-mysqlConn = MySQLdb.connect(host=config.get("database", "mysql_host"), user=config.get("database", "mysql_user"), passwd=config.get("database", "mysql_password"), db=config.get("database", "mysql_database"))
-mysqlCur = mysqlConn.cursor()
+mysql_conn = MySQLdb.connect(host=config.get("database", "mysql_host"), user=config.get("database", "mysql_user"), passwd=config.get("database", "mysql_password"), db=config.get("database", "mysql_database"))
+mysql_cur = mysql_conn.cursor()
 
 ###############################################################################
 # website-stuff ###############################################################
@@ -59,26 +59,26 @@ def index():
         return template("index")
     
 @route('/:lid#[a-z0-9]+#')
-def gotoLink(lid):
+def goto_link(lid):
     ''' get the target-url and redirect '''
-    mysqlCur.execute("SELECT target FROM links WHERE ID=%i LIMIT 1;" % base36decode(lid))
-    if mysqlCur.rowcount:
-        url = mysqlCur.fetchone()
+    mysql_cur.execute("SELECT target FROM links WHERE ID=%i LIMIT 1;" % base36decode(lid))
+    if mysql_cur.rowcount:
+        url = mysql_cur.fetchone()
         redirect(url[0])
     else:
         raise HTTPError(code=404)
 
 @get('/add/')
-def addForm():
+def add_form():
     ''' this will just show the add-formular '''
-    return template('add', authEnabled=authEnabled)
+    return template('add', auth_enabled=auth_enabled)
 
 @post('/add/')
-def addPost():
+def add_post():
     ''' this will get the get-variables and then call the addLinkToDb-method '''
     auth = request.forms.get('auth')
     link = request.forms.get('link')
-    return addLinkToDb(link, auth)
+    return add_link_to_DB(link, auth)
 
 ###############################################################################
 # api-stuff ###################################################################
@@ -86,30 +86,30 @@ def addPost():
 
 @route('/api/add/:url#.+#')
 @route('/api/add/:auth#[a-z0-9]+#/:url#.+#')
-def apiAdd(url, auth = ""):
+def api_add(url, auth = ""):
     ''' addLinkToDb for the get-api. Note that we are replacing :/ with :// here,
         thats some kind of apache "bug" '''
-    return addLinkToDb(url.replace(':/', '://'), auth)
+    return add_link_to_DB(url.replace(':/', '://'), auth)
 
 @route('/api/get/:url#.+#')
 @route('/api/get/:lid#[a-z0-9]+#')
 @route('/api/get/' + config.get("general", "link_root_url").replace('://', '\:/') + ':lid#[a-z0-9]+#')
-def apiGet(url = "", lid = ""):
+def api_get(url = "", lid = ""):
     ''' this will get the link-id AND the target. it'll search for target
         and the link-id '''
     if url:
         url = url.replace(':/', '://')
-        mysqlCur.execute("SELECT ID FROM links WHERE target='%s' LIMIT 1;" % mysqlConn.escape_string(url))
-        if mysqlCur.rowcount:
-            id = mysqlCur.fetchone()
+        mysql_cur.execute("SELECT ID FROM links WHERE target='%s' LIMIT 1;" % mysql_conn.escape_string(url))
+        if mysql_cur.rowcount:
+            id = mysql_cur.fetchone()
             id = base36encode(id[0])
             return {"status":"200", "message":"Success", "shortUrl":config.get("general", "link_root_url") + id, "target":url}
         else:
             raise HTTPError(code=404)
     elif lid:
-        mysqlCur.execute("SELECT target FROM links WHERE ID=%i LIMIT 1;" % base36decode(lid))
-        if mysqlCur.rowcount:
-            url = mysqlCur.fetchone()
+        mysql_cur.execute("SELECT target FROM links WHERE ID=%i LIMIT 1;" % base36decode(lid))
+        if mysql_cur.rowcount:
+            url = mysql_cur.fetchone()
             return {"status":"200", "message":"Success", "shortUrl":config.get("general", "link_root_url") + lid, "target":url[0]}
         else:
             raise HTTPError(code=404)
@@ -123,7 +123,7 @@ def apiGet(url = "", lid = ""):
 @error(404)
 def error404(error):
     ''' handler for 404-errors '''
-    if isApiCall():
+    if is_API_call():
         return {"status":"404", "message":"Not Found"}
     else:
         return template('error', message="uh, oh, it's a four-oh-four!")
@@ -131,7 +131,7 @@ def error404(error):
 @error(403)
 def error403(error):
     ''' handler for 403-errors '''
-    if isApiCall():
+    if is_API_call():
         return {"status":"403", "message":"Forbidden"}
     else:
         return template('error', message="seems like you are doing something you are not allowed to do?")
@@ -139,7 +139,7 @@ def error403(error):
 @error(500)
 def error500(error):
     ''' handler for 500-errors '''
-    if isApiCall():
+    if is_API_call():
         return {"status":"500", "message":"Internal Server Error"}
     else:
         return template('error', message="something went terrible wrong!")
@@ -148,13 +148,13 @@ def error500(error):
 # additional functions ########################################################
 ###############################################################################
 
-def addLinkToDb(link, auth = ""):
+def add_link_to_DB(link, auth = ""):
     ''' this will add the url to the database, but only if it's not in there
         if it's in there, just output the short link. '''
 
     # we only need a sha1-generator, if it's NOT an api-call, api-calls will already
     # have the hash in there
-    if not isApiCall():
+    if not is_API_call():
         h = hashlib.new('sha1')
         h.update(auth)
         auth = h.hexdigest()
@@ -163,18 +163,18 @@ def addLinkToDb(link, auth = ""):
     if not ":/" in link:
         link = "http://"+link
     
-    if not authEnabled() or (auth in config.get("general", "auth_hashes").rsplit(',')):
-        mysqlCur.execute("SELECT count(*) FROM links WHERE target='%s';" % mysqlConn.escape_string(link))
-        count = mysqlCur.fetchone()
+    if not auth_enabled() or (auth in config.get("general", "auth_hashes").rsplit(',')):
+        mysql_cur.execute("SELECT count(*) FROM links WHERE target='%s';" % mysql_conn.escape_string(link))
+        count = mysql_cur.fetchone()
         count = count[0]
         if not count:
-            mysqlCur.execute("INSERT INTO links (target) VALUES ('%s');" % mysqlConn.escape_string(link))
+            mysql_cur.execute("INSERT INTO links (target) VALUES ('%s');" % mysql_conn.escape_string(link))
 
-        mysqlCur.execute("SELECT ID FROM links WHERE target='%s';" % mysqlConn.escape_string(link))
-        if mysqlCur.rowcount:
-            base32url = mysqlCur.fetchone()
+        mysql_cur.execute("SELECT ID FROM links WHERE target='%s';" % mysql_conn.escape_string(link))
+        if mysql_cur.rowcount:
+            base32url = mysql_cur.fetchone()
             base32url = base36encode(base32url[0])
-            if isApiCall():
+            if is_API_call():
                 return {"status":"200", "message":"Success", "shortUrl":config.get("general", "link_root_url") + base32url}
             else:
                 return template("success", link=config.get("general", "link_root_url") + base32url)
@@ -183,18 +183,19 @@ def addLinkToDb(link, auth = ""):
     else:
         raise HTTPError(code=403)
 
-def isApiCall():
+def is_API_call():
     ''' just a little helper which checks if it's an api call or not '''
     if bottle.request.fullpath.startswith("/api/"):
         return True
     else:
         return False
 
-def authEnabled():
+def auth_enabled():
     ''' helper to check if auth is enabled '''
     if config.has_option("general", "auth_hashes") and \
        config.get("general", "auth_hashes"):
         return True
     else:
         return False
+
 application = bottle.default_app()
