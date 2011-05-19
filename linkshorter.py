@@ -322,7 +322,7 @@ def add_link_to_DB(link, auth = ""):
             else:
                 return template("success", link=surl.get_surl())
         else:
-            return raise HTTPError(code=500)
+            raise HTTPError(code=500)
     else:
         raise HTTPError(code=403)
 
