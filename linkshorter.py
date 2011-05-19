@@ -175,7 +175,7 @@ class ShortURL(object):
     
     @staticmethod
     def get_or_create_from_URL(url):
-        ''' if url is already in the database returns a ShortURL instance for it, else create it and does the same '''
+        ''' if url is already in the database returns a ShortURL instance for it, else creates it and does the same '''
         
         surl = ShortURL.from_URL(url)
         if surl:
@@ -322,7 +322,7 @@ def add_link_to_DB(link, auth = ""):
             else:
                 return template("success", link=surl.get_surl())
         else:
-            return template("error", message=str(link))#raise HTTPError(code=500)
+            return raise HTTPError(code=500)
     else:
         raise HTTPError(code=403)
 
