@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>LinkShorter</title>
+    <title>LinkShorter - {{title}}</title>
     
     <style type="text/css">
     body {
@@ -55,5 +55,6 @@
         %include
     </div>
     <div id="footer">Powered by <a href="https://github.com/denschub/bottle-linkshorter">Bottle Linkshorter</a></div>
+    %include _piwik helper.get_piwik_args()
 </body>
 </html>

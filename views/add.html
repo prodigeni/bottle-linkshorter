@@ -1,5 +1,5 @@
 <form action="/add/" method="post">
-    % if auth_enabled():
+    % if helper.auth_enabled():
     <label for="auth">Password:</label>
     <input type="password" id="auth" name="auth" />
     <br />
@@ -10,4 +10,4 @@
     <input type="submit" value="Get shortened URL" id="submit" name="submit" />
 </form>
 
-%rebase _base
+%rebase _base title="New", helper=helper

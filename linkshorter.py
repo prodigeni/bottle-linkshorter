@@ -211,7 +211,7 @@ def index():
        config.get("general", "index_redirect"):
         redirect(config.get("general", "index_redirect"))
     else:
-        return template("index")
+        return template("index", helper=Helper)
     
 @route('/:lid#[a-z0-9]+#')
 def goto_link(lid):
@@ -225,14 +225,17 @@ def goto_link(lid):
 @get('/add/')
 def add_form():
     ''' this will just show the add-formular '''
-    return template('add', auth_enabled=auth_enabled)
+    return template('add', helper=Helper)
 
 @post('/add/')
 def add_post():
     ''' this will get the get-variables and then call the addLinkToDb-method '''
     auth = request.forms.get('auth')
     link = request.forms.get('link')
-    return add_link_to_DB(link, auth)
+    if len(link.strip()) == 0:
+        return template('error', message="Please enter an URL!", helper=Helper)
+    else:
+        return add_link_to_DB(link, auth)
 
 ###############################################################################
 # api-stuff ###################################################################
@@ -277,7 +280,7 @@ def error404(error):
     if is_API_call():
         return {"status":"404", "message":"Not Found"}
     else:
-        return template('error', message="uh, oh, it's a four-oh-four!")
+        return template('error', message="uh, oh, it's a four-oh-four!", helper=Helper)
 
 @error(403)
 def error403(error):
@@ -285,7 +288,8 @@ def error403(error):
     if is_API_call():
         return {"status":"403", "message":"Forbidden"}
     else:
-        return template('error', message="seems like you are doing something you are not allowed to do?")
+        return template('error', message="seems like you are doing something you are not allowed to do?",
+                        helper=Helper)
 
 @error(500)
 def error500(error):
@@ -293,7 +297,7 @@ def error500(error):
     if is_API_call():
         return {"status":"500", "message":"Internal Server Error"}
     else:
-        return template('error', message="something went terrible wrong!")
+        return template('error', message="something went terrible wrong!", helper=Helper)
 
 ###############################################################################
 # additional functions ########################################################
@@ -314,13 +318,13 @@ def add_link_to_DB(link, auth = ""):
     if not ":/" in link:
         link = "http://"+link
     
-    if not auth_enabled() or (auth in config.get("general", "auth_hashes").rsplit(',')):
+    if not Helper.auth_enabled() or (auth in config.get("general", "auth_hashes").rsplit(',')):
         surl = ShortURL.get_or_create_from_URL(link)
         if surl:
             if is_API_call():
                 return {"status":"200", "message":"Success", "shortUrl":surl.get_surl()}
             else:
-                return template("success", link=surl.get_surl())
+                return template("success", link=surl.get_surl(), helper=Helper)
         else:
             raise HTTPError(code=500)
     else:
@@ -333,13 +337,42 @@ def is_API_call():
     else:
         return False
 
-def auth_enabled():
-    ''' helper to check if auth is enabled '''
-    if config.has_option("general", "auth_hashes") and \
-       config.get("general", "auth_hashes"):
-        return True
-    else:
-        return False
+#################################################################################
+# View helper ###################################################################
+#################################################################################
+
+class Helper(object):
+    ''' a collection of view helpers '''
+    
+    @staticmethod
+    def auth_enabled():
+        ''' helper to check if auth is enabled '''
+        if config.has_option("general", "auth_hashes") and \
+           config.get("general", "auth_hashes"):
+            return True
+        else:
+            return False
+    
+    @staticmethod
+    def piwik_enabled():
+        ''' helper to check if Piwik is enabled '''
+        
+        if config.has_section("piwik") and config.has_option("piwik", "domain") \
+           and config.has_option("piwik", "site_id") and config.get("piwik", "domain") \
+           and config.get("piwik", "site_id"):
+            return True
+        else:
+            return False
+    
+    @staticmethod
+    def get_piwik_args():
+        ''' helper to return the arguments for the _piwik.html template '''
+        
+        if Helper.piwik_enabled():
+            return {"domain": config.get("piwik", "domain"),
+                    "site_id": config.get("piwik", "site_id")}
+        else:
+            return {"domain": None, "site_id": None}
 
 # WSGI
 application = bottle.default_app()
