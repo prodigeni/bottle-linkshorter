@@ -157,9 +157,9 @@ class ShortURL(object):
     def from_lid(lid):
         ''' if there's an URL for lid returns a ShortURL instance for it, else None '''
         
-        url = db.fetch_one("SELECT target FROM links WHERE ID=%i LIMIT 1;" % base36decode(lid))[0]
-        if url:
-            return ShortURL(url, lid)
+        url = db.fetch_one("SELECT target FROM links WHERE ID=%i LIMIT 1;" % base36decode(lid))
+        if url and url[0]:
+            return ShortURL(url[0], lid)
         else:
             return None
     
