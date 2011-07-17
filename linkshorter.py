@@ -31,7 +31,7 @@ import ConfigParser
 import hashlib
 import MySQLdb
 import bottle
-from base36 import *
+from classes import *
 from bottle import route, redirect, template, get, post, request, HTTPError, error
 
 # for debiggung
@@ -40,86 +40,6 @@ bottle.app().catchall = 0
 # load the config-file
 config = ConfigParser.ConfigParser()
 config.read('config.cfg')
-
-
-################################################################################
-# database abstraction #########################################################
-################################################################################
-
-class DB(object):
-    ''' a smalll database abstraction to eliminate lost connections '''
-    
-    conn = None
-    ''' the MySQLdb connection instance '''
-    
-    cur = None
-    ''' the MySQLdb cursor instance '''
-    
-    retries = int(config.get("database", "mysql_connection_retries"))
-    ''' number of retries for a failed operation '''
-    
-    def __init__(self, host, user, password, database):
-        ''' initialize the object '''
-        self.host = host
-        self.user = user
-        self.password = password
-        self.database = database
-        
-        self._init_connection()
-    
-    def _init_connection(self):
-        ''' initializes the connection '''
-        
-        if self.retries < 1:
-            raise DBConnectionFailed()
-        try:
-            self.conn = MySQLdb.connect(host=self.host, user=self.user,
-                                        passwd=self.password, db=self.database,
-                                        connect_timeout=int(config.get("database", "mysql_connection_timeout")))
-            self.cur = self.conn.cursor()
-            self.retries = int(config.get("database", "mysql_connection_retries"))
-        except:
-            self.retries -= 1
-            print("WARNING: MySQL connection died, trying to reinit...")
-            self._init_connection()
-    
-    def escape(self, obj):
-        ''' autodetect input and escape it for use in a SQL statement '''
-        
-        try:
-            if isinstance(obj, str):
-                return self.conn.escape_string(obj)
-            else:
-                return obj
-        except MySQLdb.OperationalError:
-            print("WARNING: MySQL connection died, trying to reinit...")
-            self._init_connection()
-            return self.escape(obj)
-    
-    def execute(self, sql):
-        ''' execute the SQL statement and return the cursor '''
-        
-        try:
-            self.cur.execute(sql)
-            return self.cur
-        except MySQLdb.OperationalError:
-            print("WARNING: MySQL connection died, trying to reinit...")
-            self._init_connection()
-            return self.execute(sql)
-    
-    def fetch_one(self, sql):
-        ''' execute the SQL statement and return one row if there's a result, return None if there's no result '''
-        
-        cur = self.execute(sql)
-        if cur.rowcount:
-            return cur.fetchone()
-        else:
-            return None
-
-#TODO: probably make this a HTTPError
-class DBConnectionFailed(Exception):
-    ''' happens when a database operation continually fails '''
-
 
 ###############################################################################
 # init database ###############################################################
@@ -131,88 +51,18 @@ db = DB(config.get("database", "mysql_host"),
         config.get("database", "mysql_database"))
 
 ###############################################################################
-# models ######################################################################
-###############################################################################
-
-
-class ShortURL(object):
-    ''' a small model for shortend URLs '''
-    
-    lid = None
-    ''' the lid for an URL '''
-
-    url = None
-    ''' the URL for a lid '''
-
-    def __init__(self, url, lid=None):
-        ''' if lid isn't given creates a new entry '''
-        
-        if lid != None:
-            self.lid = lid
-            self.url = url
-        else:
-            self = ShortURL.get_or_create_from_url(url)
-    
-    @staticmethod
-    def from_lid(lid):
-        ''' if there's an URL for lid returns a ShortURL instance for it, else None '''
-        
-        url = db.fetch_one("SELECT target FROM links WHERE ID=%i LIMIT 1;" % base36decode(lid))
-        if url and url[0]:
-            return ShortURL(url[0], lid)
-        else:
-            return None
-    
-    @staticmethod
-    def from_URL(url):
-        ''' if url is in the database returns a ShortURL instance for it, else None '''
-        
-        id = db.fetch_one("SELECT ID FROM links WHERE target='%s';" % db.escape(url))
-        if id and id[0]:
-            return ShortURL(url, base36encode(id[0]))
-        else:
-            return None
-    
-    @staticmethod
-    def get_or_create_from_URL(url):
-        ''' if url is already in the database returns a ShortURL instance for it, else creates it and does the same '''
-        
-        surl = ShortURL.from_URL(url)
-        if surl:
-            return surl
-        else:
-            db.execute("INSERT INTO links (target) VALUES ('%s');" % db.escape(url))
-            return ShortURL.from_URL(url)
-    
-    def get_surl(self):
-        ''' get the full shortened URL '''
-        
-        return config.get("general", "link_root_url")+self.lid
-    
-    def get_url(self):
-        ''' return the URL '''
-        
-        return self.url
-    
-    def get_lid(self):
-        ''' return the lid '''
-        
-        return self.lid
-
-
-###############################################################################
 # website-stuff ###############################################################
 ###############################################################################
 
 @route('/')
 def index():
-    ''' this will redirect to the redirect-target or output the index-page '''    
+    ''' this will redirect to the redirect-target or output the index-page '''
     if config.has_option("general", "index_redirect") and \
        config.get("general", "index_redirect"):
         redirect(config.get("general", "index_redirect"))
     else:
         return template("index", helper=Helper)
-    
+
 @route('/:lid#[a-z0-9]+#')
 def goto_link(lid):
     ''' get the target-url and redirect '''
@@ -313,11 +163,11 @@ def add_link_to_DB(link, auth = ""):
         h = hashlib.new('sha1')
         h.update(auth)
         auth = h.hexdigest()
-    
+
     # Get sure there's a protocol
     if not ":/" in link:
         link = "http://"+link
-    
+
     if not Helper.auth_enabled() or (auth in config.get("general", "auth_hashes").rsplit(',')):
         surl = ShortURL.get_or_create_from_URL(link)
         if surl:
@@ -343,7 +193,7 @@ def is_API_call():
 
 class Helper(object):
     ''' a collection of view helpers '''
-    
+
     @staticmethod
     def auth_enabled():
         ''' helper to check if auth is enabled '''
@@ -352,22 +202,22 @@ class Helper(object):
             return True
         else:
             return False
-    
+
     @staticmethod
     def piwik_enabled():
         ''' helper to check if Piwik is enabled '''
-        
+
         if config.has_section("piwik") and config.has_option("piwik", "domain") \
            and config.has_option("piwik", "site_id") and config.get("piwik", "domain") \
            and config.get("piwik", "site_id"):
             return True
         else:
             return False
-    
+
     @staticmethod
     def get_piwik_args():
         ''' helper to return the arguments for the _piwik.html template '''
-        
+
         if Helper.piwik_enabled():
             return {"domain": config.get("piwik", "domain"),
                     "site_id": config.get("piwik", "site_id")}
